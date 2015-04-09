@@ -8,6 +8,5 @@
         "!index.css",
         "!lib/**/*"
     ],
-    "dependencies": {
-    }
+    "dependencies": {}
 }

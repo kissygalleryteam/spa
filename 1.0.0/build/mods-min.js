@@ -1,0 +1,1 @@
+KISSY.config("requires",{"kg/spa/1.0.0/lib/main":["node","base"]});
