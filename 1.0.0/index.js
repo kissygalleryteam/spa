@@ -1,26 +1,28 @@
 function Spa(el){
-    this.setElement(el);
+    this.el = null;
+    this.targetEl = null;
     this.currentFrame = 0;
     this.rendered = false;
     this.path = [];
+    this.setElement(el);
     this.init();
 }
 
 Spa.prototype.setElement = function(el) {
-    if (typeof el == 'undefined') {
-        throw new Error('SpaJS [constructor]: "el" parameter is required');
-    };
-    if (el.constructor == String) {
-        el = document.getElementById(el);
-        if (!el) {
-            throw new Error('SpaJS [constructor]: "el" parameter is not related to an existing ID');
-        };
-    };
-    if (el.constructor !== SVGSVGElement) {
-        throw new Error('SpaJS [constructor]: "svg" element is required');
-    }else{
+    el = check(el);
+    if (el.__proto__.constructor === SVGSVGElement) {
         this.el = el;
-        this.image = this.el.previousElementSibling;
+    }else{
+        throw new Error('[SpaJS]: `svg` element is required');
+    };
+};
+
+Spa.prototype.setTargetElement = function(el) {
+    el = check(el);
+    if (el.__proto__ && el.__proto__.__proto__ && el.__proto__.__proto__.constructor === HTMLElement) {
+        this.targetEl = el;
+    }else{
+        throw new Error('[SpaJS]: `target` element is must be the HTMLElement');
     };
 };
 
@@ -38,11 +40,9 @@ Spa.prototype.init = function() {
     });
 };
 
-Spa.prototype.render = function(image) {
-    if (!this.rendered) {
-        if (image && image.constructor == HTMLImageElement) {
-            this.image = image;
-        };
+Spa.prototype.render = function(tSelector) {
+    if (!this.rendered && this.el) {
+        this.setTargetElement(tSelector || this.el.previousElementSibling);
         this.rendered = true;
         this.draw();
     };
@@ -51,6 +51,7 @@ Spa.prototype.render = function(image) {
 Spa.prototype.draw = function() {
     var self = this;
     var timer;
+    if (!this.path.length) return;
     (function(){
         var progress = self.currentFrame/60;
         if (progress <= 1) {
@@ -61,7 +62,7 @@ Spa.prototype.draw = function() {
             self.currentFrame++;
         } else{
             cancelAnimFrame(timer);
-            self.show();
+            self.targetEl && self.show();
         };
     })();
 };
@@ -75,7 +76,7 @@ Spa.prototype.show = function() {
             cancelAnimFrame(timer);
         }else{
             opacity += 2;
-            self.image.style.opacity = opacity/100;
+            self.targetEl.style.opacity = opacity/100;
             timer = requestAnimFrame(arguments.callee);
         };
     })();
@@ -84,6 +85,26 @@ Spa.prototype.show = function() {
 
 var toArray = function(obj){
     return Array.prototype.slice.call(obj);
+}
+
+var check = function(el){
+    if (!el) {
+        throw new Error('[SpaJS]: parameter is required');
+    };
+    if (el.constructor == NodeList || el.constructor == HTMLCollection) {
+        if (el.length) {
+            el = el[0];
+        }else{
+            throw new Error('[SpaJS]: the NodeList is not related to empty');
+        }
+    };
+    if (el.constructor == String) {
+        el = document.getElementById(el);
+        if (!el) {
+            throw new Error('[SpaJS]: parameter is not related to an existing ID');
+        };
+    };
+    return el;
 }
 
 var requestAnimFrame = function(){
