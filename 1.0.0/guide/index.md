@@ -15,6 +15,6 @@ S.use('kg/spa/1.0.0/index', function (S, Spa) {
      var spa = new Spa('iphone');
      spa.render();
 })
-``````
+```
 
 ## API说明
